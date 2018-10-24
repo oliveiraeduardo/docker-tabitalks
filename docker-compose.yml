@@ -1,0 +1,26 @@
+version: '3.0'
+services:
+  web:
+    image: tabitalks-project
+    ports:
+      - "80:80"
+    links:
+      - db
+    env_file:
+      - env
+    volumes:
+      - /home/project-tabitalks:/var/www/html:rw,delegated
+  db:
+    image: tabitalks-db
+    volumes:
+      - db-data:/var/lib/mysql/data
+    env_file:
+      - env
+  phpmyadmin:
+    image: tabitalks-phpmyadmin
+    ports:
+      - "8580:80"
+    links:
+      - db     
+volumes:
+  db-data: 
