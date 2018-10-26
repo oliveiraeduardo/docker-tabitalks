@@ -1,26 +1,46 @@
-version: '3.0'
+version: "3"
+
 services:
-  web:
-    image: tabitalks-project
+  webserver:
+    build: 
+      context: ./bin/webserver
+    container_name: '7.2.x-webserver'
+    restart: 'always'
     ports:
       - "80:80"
-    links:
-      - db
-    env_file:
-      - env
-    volumes:
-      - /home/project-tabitalks:/var/www/html:rw,delegated
-  db:
-    image: tabitalks-db
-    volumes:
-      - db-data:/var/lib/mysql/data
-    env_file:
-      - env
-  phpmyadmin:
-    image: tabitalks-phpmyadmin
+      - "443:443"
+    links: 
+      - mysql
+    volumes: 
+      - /home/project-tabitalks:/var/www/html
+      - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+      - ${VHOSTS_DIR-./config/vhosts}:/etc/apache2/sites-enabled
+      - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+  mysql:
+    build: ./bin/mysql
+    container_name: '5.7-mysql'
+    restart: 'always'
     ports:
-      - "8580:80"
+      - "3306:3306"
+    volumes: 
+      - ${MYSQL_DATA_DIR-./data/mysql}:/var/lib/mysql
+      - ${MYSQL_LOG_DIR-./logs/mysql}:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: 'sc-phpmyadmin'
     links:
-      - db     
-volumes:
-  db-data: 
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - '8080:80'
+    volumes: 
+      - /sessions
+  redis:
+    container_name: 'sc-redis'
+    image: redis:latest
+    ports:
+      - "6379:6379"
